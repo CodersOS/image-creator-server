@@ -2,20 +2,16 @@
 
 class Commander:
 
-    def __init__(self, base_image, commands):
+    def __init__(self, image, commands):
         """Create a new Commander object that executes the commands on the base image.
         """
-        self._image = self._create_image()
+        self._image = image
         self._status = []
         for command in commands:
             self._status.append({"name": command["name"], "status": "waiting"})
         self._index = iter(range(len(commands)))
         self._commands = commands
-        self._status_code = "waiting"
-
-    def _create_image(self):
-        """Create the image."""
-        # TODO: create correct image
+        self._status_code = ("waiting" if commands else "stopped")
 
     def get_status(self):
         """Returns the status based in the previous commands.
@@ -31,9 +27,10 @@ class Commander:
 
         If there is no iso image, None is returned.
         """
+        assert self.get_status_code() == "stopped"
         result = self._image.execute_command(["/toiso/iso_path.sh"])
         result.check_returncode()
-        path = result.output.decode() # TODO: checkresult
+        path = result.output.decode()
         try:
             file = self._image.get_file(path)
         except FileNotFoundError:

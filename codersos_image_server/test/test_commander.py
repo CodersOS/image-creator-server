@@ -1,5 +1,5 @@
 from unittest.mock import Mock
-from pytest import fixture
+from pytest import fixture, raises
 from codersos_image_server.commander import Commander
 
 @fixture
@@ -17,11 +17,7 @@ def pytest_generate_tests(metafunc):
 
 @fixture
 def commander(image, commands):
-    class TestCommander(Commander):
-
-        def _create_image(self):
-            return image
-    return TestCommander("base-image", commands)
+    return Commander(image, commands)
     
 
 class TestStatus:
@@ -66,6 +62,10 @@ class TestStatus:
         commander.execute_one_command()
         assert commander.get_status()[0]["output"] == image.execute_file.return_value.output.decode.return_value
 
+    def test_commander_without_commands_is_stopped(self):
+        commander = Commander(Mock(), [])
+        assert commander.get_status_code() == "stopped"
+
 class TestExecution:
 
     def test_execute_calls_all_commands(self, commander, commands):
@@ -91,21 +91,30 @@ class TestExecution:
 
 class TestISOPath:
 
-    def test_get(self, commander, image):
-        assert commander.get_iso_path() ==  image.get_file.return_value.name
+    @fixture
+    def stopped_commander(self, commander):
+        commander.get_status_code = lambda: "stopped"
+        return commander
 
-    def test_no_path(self, commander, image):
+    def test_get(self, stopped_commander, image):
+        assert stopped_commander.get_iso_path() ==  image.get_file.return_value.name
+
+    def test_no_path(self, stopped_commander, image):
         def error(*args):
             raise FileNotFoundError()
         image.get_file = error
-        assert commander.get_iso_path() is None
+        assert stopped_commander.get_iso_path() is None
 
-    def test_get_file_with_iso_path(self, commander, image):
-        commander.get_iso_path()
+    def test_get_file_with_iso_path(self, stopped_commander, image):
+        stopped_commander.get_iso_path()
         image.execute_command.assert_called_once_with(["/toiso/iso_path.sh"])
         image.get_file.assert_called_once_with(image.execute_command.return_value.output.decode.return_value)
 
-    def test_iso_path_checks_if_iso_could_be_read(self, commander, image):
-        commander.get_iso_path()
+    def test_iso_path_checks_if_iso_could_be_read(self, stopped_commander, image):
+        stopped_commander.get_iso_path()
         image.execute_command.return_value.check_returncode.assert_called_once_with()
+
+    def test_only_from_stopped_commander(self, commander):
+        with raises(AssertionError):
+            commander.get_iso_path()
 
