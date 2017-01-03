@@ -135,4 +135,40 @@ class TestExecuteFile(TestExecuteACommand):
         file_content = "#!/bin/bash\n'" + "' '".join(command) + "'\n"
         return image.execute_file(file_content)
 
+def test_add_file(image):
+    image.add_file("/asd/asd", "hello")
+    hello = image.execute_command(["cat", "/asd/asd"])
+    assert hello.stdout == b"hello"
+
+class TestToISO:
+
+    COMMAND = "command was executed"
+    ISO_PATH = "/tmp/iso"
+    ISO = "ISO!!!"
+
+    @fixture(scope="module")
+    def iso_image_base(self):
+        image = Image("ubuntu")
+        image.add_file("/toiso/command.sh", "#!/bin/bash\necho '{0}'\necho '{0}' > '{1}'".format(self.COMMAND, self.ISO_PATH))
+        image.add_file("/toiso/iso_path.sh", "#!/bin/bash\necho '{0}'\necho '{1}' >> '{0}'\n".format(self.ISO_PATH, self.ISO))
+        yield image
+        image.delete()
+
+    @fixture
+    def iso_image(self, iso_image_base):
+        return iso_image_base.copy()
+
+    def test_iso_image_calls_command_sh(self, iso_image):
+        iso_file_path = iso_image.create_iso_file()
+        with open(iso_file_path) as file:
+            assert file.read() == self.COMMAND + self.ISO
+
+    def test_iso_files_are_deleted_with_image(self, iso_image):
+        iso_file_path1 = iso_image.create_iso_file()
+        iso_file_path2 = iso_image.create_iso_file()
+        iso_image.delete_iso_files()
+        assert not os.path.isfile(iso_file_path1)
+        assert not os.path.isfile(iso_file_path2)
+     
+
 

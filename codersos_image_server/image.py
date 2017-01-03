@@ -25,6 +25,12 @@ class Image(object):
         self._image = base_docker_image
         self.create_container()
 
+    def copy(self):
+        """Create a copy of this image."""
+        copy = self.__class__(self._image)
+        self.create_container()
+        return copy
+
     @property
     def docker_image(self):
         """The id of the current docker image."""
@@ -125,6 +131,13 @@ class Image(object):
 
         You can only execute one command at a time!
         """
+        self.add_file("/tmp/command", content)
+        self.execute_command(["chmod", "+x", "/tmp/command"]).check_returncode()
+        return self.execute_command(["/tmp/command"] + list(arguments))
+
+    def add_file(self, path, content):
+        """Add a file to the image."""
+        self.execute_command(["mkdir", "-p", os.path.dirname(path)])
         if isinstance(content, bytes):
             file = NamedTemporaryFile("wb")
         else:
@@ -133,9 +146,7 @@ class Image(object):
             file.write(content)
             file.flush()
             with self._create_container() as container_id:
-                docker("cp", file.name, container_id + ":/tmp/command")
-        self.execute_command(["chmod", "+x", "/tmp/command"]).check_returncode()
-        return self.execute_command(["/tmp/command"] + list(arguments))
+                docker("cp", file.name, container_id + ":" + path)
 
     def create_iso_file(self):
         """Create the live image in an iso format.
