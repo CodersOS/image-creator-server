@@ -9,8 +9,11 @@ def image():
 def pytest_generate_tests(metafunc):
     if 'commands' in metafunc.fixturenames:
         metafunc.parametrize("commands",
-                             [[{"name": "test1", "command":"do1"}, {"name": "test2", "command":"do2"}, {"name": "test3", "command":"do3"}],
-                              [{"name": "test1", "command":"doajshdkhkada"}, {"name": "asd", "command":"asd"}]])
+                             [[{"name": "test1", "command":"do1", "arguments": []},
+                               {"name": "test2", "command":"do2", "arguments": ["2"]},
+                               {"name": "test3", "command":"do3", "arguments": ["1", "2", "3"]}],
+                              [{"name": "test1", "command":"doajshdkhkada", "arguments": ["asd", "-s", "asd"]},
+                               {"name": "asd", "command":"asd", "arguments": ["1", "2"]}]])
 
 @fixture
 def commander(image, commands):
@@ -51,7 +54,7 @@ class TestStatus:
             for status in commander.get_status():
                 assert (status["name"] == command["name"]) == (status["status"] == "running")
             return Mock()
-        image.execute_file = test
+        image.execute_file.side_effect = test
         commander.execute()
 
     def test_return_code(self, commander, image):
@@ -69,6 +72,22 @@ class TestExecution:
         commander.execute_one_command = Mock()
         commander.execute()
         assert commander.execute_one_command.call_count == len(commands)
+
+    def test_status_code(self, commander, image, commands):
+        def test(*args):
+            assert commander.get_status_code() == "running"
+            return Mock()
+        image.execute_file.side_effect = test
+        for _ in commands:
+            assert commander.get_status_code() == "waiting"
+            commander.execute_one_command()
+        assert commander.get_status_code() == "stopped"
+
+    def test_arguments_are_passed(self, commander, commands, image):
+        for i in range(len(commands)):
+            commander.execute_one_command()
+            command = commands[i]
+            image.execute_file.assert_called_with(command["command"], command["arguments"])
 
 class TestISOPath:
 

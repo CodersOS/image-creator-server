@@ -15,6 +15,7 @@ REDIRECT = "redirect"
 COMMANDS = "commands"
 NAME = "name"
 COMMAND = "command"
+ARGUMENTS = "arguments"
 
 def is_url(url):
     return url.startswith("http://") or url.startswith("https://")
@@ -32,6 +33,9 @@ def verify_specification(specification):
         assert isinstance(command[NAME], str), "The value of \"name\" of command {} must be a string.".format(index)
         assert COMMAND in command, "Command {} must have an attribute \"command\"."
         assert isinstance(command[COMMAND], str), "The value of \"command\" of command {} must be a string.".format(index)
+        assert ARGUMENTS in command, "Command {} must have an attribute \"arguments\"."
+        assert isinstance(command[ARGUMENTS], list), "The value of \"arguments\" of command {} must be a list.".format(index)
+        assert all(map(lambda argument: isinstance(argument, str), command[ARGUMENTS])), "All arguments in comand {} must be strings.".format(index)
         
 @post("/create")
 def create_image():

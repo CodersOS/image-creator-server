@@ -22,7 +22,8 @@ API
           "commands" : [
             {
               "name" : "COMMAND-NAME",
-              "command" : "COMMAND"
+              "command" : "COMMAND",
+              "arguments" : ["ARGUMENT", ...]
             },
             ...
           ]
@@ -57,6 +58,8 @@ API
         #!/usr/bin/python
         # doing some python stuff
         ```
+    - `ARGUMENT` is part of a list of arguments to the `COMMAND` file.
+    - `arguments` must be given.
 
 - **GET /status/ID**  
   The result of this GET request is a JSON like this:
