@@ -105,5 +105,7 @@ class TestISOPath:
         image.execute_command.assert_called_once_with(["/toiso/iso_path.sh"])
         image.get_file.assert_called_once_with(image.execute_command.return_value.output.decode.return_value)
 
-
+    def test_iso_path_checks_if_iso_could_be_read(self, commander, image):
+        commander.get_iso_path()
+        image.execute_command.return_value.check_returncode.assert_called_once_with()
 
