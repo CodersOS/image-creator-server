@@ -2,6 +2,7 @@ from codersos_image_server.image import Image
 from pytest import fixture, raises
 import subprocess
 from unittest.mock import Mock
+import os
 
 def containers():
     """Return the docker containers."""
@@ -119,11 +120,6 @@ class TestDeleteImage:
         image.delete()
         image.delete_container.assert_called_once_with()
 
-    def test_isos(self, image):
-        image.delete_iso_files = Mock()
-        image.delete()
-        image.delete_iso_files.assert_called_once_with()
-
     def test_can_delete_image_twice(self, image):
         image.delete()
         image.delete()
@@ -140,35 +136,21 @@ def test_add_file(image):
     hello = image.execute_command(["cat", "/asd/asd"])
     assert hello.stdout == b"hello"
 
-class TestToISO:
 
-    COMMAND = "command was executed"
-    ISO_PATH = "/tmp/iso"
-    ISO = "ISO!!!"
+class TestGetFile:
 
-    @fixture(scope="module")
-    def iso_image_base(self):
-        image = Image("ubuntu")
-        image.add_file("/toiso/command.sh", "#!/bin/bash\necho '{0}'\necho '{0}' > '{1}'".format(self.COMMAND, self.ISO_PATH))
-        image.add_file("/toiso/iso_path.sh", "#!/bin/bash\necho '{0}'\necho '{1}' >> '{0}'\n".format(self.ISO_PATH, self.ISO))
-        yield image
-        image.delete()
+    def test_content(self, image):
+        image.add_file("/tmp/asd", "test")
+        file = image.get_file("/tmp/asd",binary=False)
+        assert file.read() == "test"
 
-    @fixture
-    def iso_image(self, iso_image_base):
-        return iso_image_base.copy()
+    def test_get_file_is_temporary_file(self, image):
+        file = image.get_file("/bin/bash")
+        assert os.path.isfile(file.name)
+        file.close()
+        assert not os.path.isfile(file.name)
 
-    def test_iso_image_calls_command_sh(self, iso_image):
-        iso_file_path = iso_image.create_iso_file()
-        with open(iso_file_path) as file:
-            assert file.read() == self.COMMAND + self.ISO
-
-    def test_iso_files_are_deleted_with_image(self, iso_image):
-        iso_file_path1 = iso_image.create_iso_file()
-        iso_file_path2 = iso_image.create_iso_file()
-        iso_image.delete_iso_files()
-        assert not os.path.isfile(iso_file_path1)
-        assert not os.path.isfile(iso_file_path2)
-     
-
+    def test_file_does_not_exist(self, image):
+        with raises(FileNotFoundError):
+            image.get_file("/adsasdsadsads")
 

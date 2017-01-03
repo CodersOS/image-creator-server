@@ -146,24 +146,30 @@ class Image(object):
             file.write(content)
             file.flush()
             with self._create_container() as container_id:
-                docker("cp", file.name, container_id + ":" + path)
+                docker("cp", file.name, container_id + ":" + path).check_returncode()
 
-    def create_iso_file(self):
-        """Create the live image in an iso format.
+    def get_file(self, path, binary=True):
+        """Return a file object with the copied content of the file in the container.
 
-        :return: The path to the iso file.
-        :rtype: str
+        This returns a TemporaryFile with the content of the file from the file system.
+        If the file does not exists, an FileNotFoundError is raised.
         """
-
-    def delete_iso_files(self):
-        """Delete all iso files."""
+        assert isinstance(binary, bool)
+        mode = ("rb" if binary else "r")
+        file = NamedTemporaryFile(mode)
+        file.file.close()
+        with self._create_container() as container_id:
+            result = docker("cp", container_id + ":" + path, file.name, check=False)
+        if result.returncode != 0:
+            raise FileNotFoundError(path, result)        
+        file.file = open(file.name, mode)
+        return file
 
     def delete(self):
         """When this object is deleted, iso and containers are deleted.
 
         This deletes the container and the iso files.
         """
-        self.delete_iso_files()
         self.delete_container()
 
     def __del__(self):
