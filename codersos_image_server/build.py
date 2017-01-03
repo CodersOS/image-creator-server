@@ -31,7 +31,7 @@ class Build:
         assert self.get_status_code() == "stopped"
         result = self._image.execute_command(["/toiso/iso_path.sh"])
         result.check_returncode()
-        path = result.output.decode()
+        path = result.stdout.decode()
         try:
             file = self._image.get_file(path)
         except FileNotFoundError:
