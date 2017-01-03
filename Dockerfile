@@ -1,7 +1,7 @@
 FROM ubuntu
 
 RUN apt-get update && \
-    apt-get install python3 python3-pip && \
+    apt-get -y install python3 python3-pip && \
     wget -O- https://get.docker.com | bash && \
     apt-get clean
 
