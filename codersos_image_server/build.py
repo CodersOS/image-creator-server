@@ -68,7 +68,7 @@ class Build:
                 result = self._image.execute_file(command["command"], command["arguments"])
                 status["status"] = "stopped"
                 status["exitcode"] = result.returncode
-                status["output"] = result.output.decode()
+                status["output"] = result.stdout.decode()
             finally:
                 self._status_code = ("stopped" if index == len(self._commands) - 1 else "waiting")
             break

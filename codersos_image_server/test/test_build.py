@@ -60,7 +60,7 @@ class TestStatus:
 
     def test_output(self, build, image):
         build.execute_one_command()
-        assert build.get_status()[0]["output"] == image.execute_file.return_value.output.decode.return_value
+        assert build.get_status()[0]["output"] == image.execute_file.return_value.stdout.decode.return_value
 
     def test_build_without_commands_is_stopped(self):
         build = Build(Mock(), [])

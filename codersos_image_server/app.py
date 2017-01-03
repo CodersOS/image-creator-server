@@ -4,13 +4,14 @@ import os
 import shutil
 from .build import ParallelBuild
 from .image import Image
+from pprint import pprint
 
 APPLICATION = 'CodersOS-image-server'
 APPDATA_ROOT = os.environ.get('APPDATA', '/var/' + APPLICATION)
 APPDATA = os.path.join(APPDATA_ROOT, APPLICATION)
 HERE = os.path.dirname(__file__) or os.getcwd()
 ZIP_PATH = "/" + APPLICATION + ".zip"
-BASE_IMAGE = "codersos/ubuntu-remix"
+BASE_IMAGE = "codersos/linux-iso-creator"
 
 # --------------------- POST /create ---------------------
 
@@ -19,6 +20,7 @@ COMMANDS = "commands"
 NAME = "name"
 COMMAND = "command"
 ARGUMENTS = "arguments"
+STATUS = "status"
 
 def is_url(url):
     return url.startswith("http://") or url.startswith("https://")
@@ -46,9 +48,10 @@ next_build_id = 0
 @post("/create")
 def create_image():
     global next_build_id
-    specification = request.json()
+    specification = request.json
+    pprint(specification)
     verify_specification(specification)
-    build = ParallelBuild(BASE_IMAGE, specification)
+    build = ParallelBuild(Image(BASE_IMAGE), specification[COMMANDS])
     build.start()
     builds[next_build_id] = build
     next_build_id += 1
@@ -63,7 +66,7 @@ def create_image():
 
 # --------------------- Status ---------------------
 
-@get("/status/<build_id>")
+@get("/status/<build_id:int>")
 def get_status(build_id):
     if build_id not in builds:
         abort(404, '{"error": "Not found."}')
@@ -100,4 +103,4 @@ def get_source():
     return static_file(path, root="/")
 
 if __name__ == "__main__":
-    run(host='', port=80, debug=True)
+    run(host='', port=80, debug=True, reload=True)
