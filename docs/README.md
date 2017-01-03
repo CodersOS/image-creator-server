@@ -1,6 +1,3 @@
----
----
-
 image-creator-server Documentation
 ==================================
 
@@ -90,8 +87,10 @@ API
     - `COMMAND-NAME`, see above, the name of a command.
     - `EXIT-CODE` is an integer of the process exit, if the process exited.
       We can assume that the `0` means success.
+      Commands with status `stopped` must have the `exitcode` attribute.
     - `COMMAND-OUTPUT` - the stdout and stderr combined string of command
       output. This is useful for debugging.
+      Commands with status `stopped` must have the `output` attribute.
   - `DOWNLOAD-URL` is the URL where the result can be downloaded once the
     process exited with `STATUS-CODE` `stopped`.
     If `exitcode` is 0, then the url MUST be present.
