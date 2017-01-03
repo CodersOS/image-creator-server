@@ -59,6 +59,7 @@ class TestCreateImage:
         containers_after = containers()
         assert container_before == containers_after
 
+
 class TestDeleteImage:
 
     def deleting_the_container_removes_docker_image(self, image):
@@ -66,6 +67,32 @@ class TestDeleteImage:
         image.delete_container()
         assert image.docker_image is None
         assert image.docker_image not in images()
+
+    def test_delete_tries_to_delete_all_intermediate_images(self):
+        images_before = images()
+        image = Image("ubuntu")
+        image.execute_command(["touch x"])
+        first_set_of_images = images()
+        assert images_before < first_set_of_images
+        image.execute_command(["touch y"])
+        assert first_set_of_images < images()
+        image.delete()
+        images_after_deletion = images()
+        assert images_before == images_after_deletion
+
+    def test_del_calls_delete(self, image):
+        image.delete = Mock()
+        image.__del__()
+        image.delete.assert_called_once_with()
+
+    def test_container(self, image):
+        image.delete_container = Mock()
+        image.delete()
+        image.delete_container.assert_called_once_with()
+
+    def test_can_delete_image_twice(self, image):
+        image.delete()
+        image.delete()
 
 
 class TestExecuteACommand:
@@ -107,23 +134,6 @@ class TestExecuteACommand:
         result = self.exec(image, ["bash", "-c", "exit 123"])
         assert result.returncode == 123
         
-
-class TestDeleteImage:
-
-    def test_del_calls_delete(self, image):
-        image.delete = Mock()
-        image.__del__()
-        image.delete.assert_called_once_with()
-
-    def test_container(self, image):
-        image.delete_container = Mock()
-        image.delete()
-        image.delete_container.assert_called_once_with()
-
-    def test_can_delete_image_twice(self, image):
-        image.delete()
-        image.delete()
-
 
 class TestExecuteFile(TestExecuteACommand):
 
