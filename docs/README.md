@@ -95,3 +95,6 @@ API
   - `DOWNLOAD-URL` is the URL where the result can be downloaded once the
     process exited with `STATUS-CODE` `stopped`.
     If `exitcode` is 0, then the url MUST be present.
+
+- **GET /source**
+  The result is a zip file with the current source code.
