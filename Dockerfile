@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get -y install python3 python3-pip wget && \
     pip3 install -r /root/requirements.txt && rm -f /root/requirements.txt && \
     wget -O- https://get.docker.com | bash && \
-    apt-get purge python3-pip wget && \
+    apt-get -y purge python3-pip wget && \
     apt-get clean
 
 
