@@ -1,13 +1,14 @@
-from codersos_image_server import Image
-from pytest import fixture
+from codersos_image_server.image import Image
+from pytest import fixture, raises
 import subprocess
+from unittest.mock import Mock
 
 def containers():
     """Return the docker containers."""
-    return set(subprocess.check_output("docker", "ps", "-aq").splitlines())
+    return set(subprocess.check_output(["docker", "ps", "-aq"]).decode().splitlines())
 
 def images():
-    return set(subprocess.check_output("docker", "images", "-aq").splitlines())
+    return set(subprocess.check_output(["docker", "images", "-aq"]).decode().splitlines())
 
 @fixture
 def image():
@@ -19,11 +20,12 @@ class TestCreateImage:
         Image("ubuntu")
 
     def test_cannot_create_invalid_image(self):
-        Image("asdhgjsagjfgakdsghfskdh")
+        with raises(ValueError):
+            Image("asdhgjsagjfgakdsghfskdh")
 
     def test_can_not_create_container_of_deleted_image(self, image):
         image.delete()
-        assert raises(AssertionError):
+        with raises(ValueError):
             image.create_container()
 
     def test_can_create_container(self, image):
@@ -33,7 +35,8 @@ class TestCreateImage:
         images_before = images()
         image.create_container()
         images_after = images()
-        assert images_before == images_after
+        assert images_before <= images_after
+        assert len(images_before) == len(images_after) - 1
 
     def test_creating_an_image_creates_a_new_docker_image(self):
         images_before = images()
@@ -66,42 +69,59 @@ class TestExecuteACommand:
 
     def test_creates_new_image(self, image):
         image_before = image.docker_image
-        image.execute_command(["ls"])
+        image.execute_command(["touch x"])
         image_after = image.docker_image
         assert image_before != image_after
 
-    def test_delete_old_image(self, image):
+    def test_can_not_delete_old_image(self, image):
         image_before = image.docker_image
-        image.execute_command("ls")
-        assert image_before not in images()
+        image.execute_command("touch x")
+        assert image_before in images()
 
     def test_no_container_is_left(self, image):
         container_before = containers()
-        image.execute_command("ls")
+        image.execute_command("touch x")
         containers_after = containers()
         assert container_before == containers_after
 
     def test_output(self, image):
         string = "jahslfhawuehifdsjhawuhefhkdsjkfhawu"
         result = image.execute_command(["echo", "-n", string])
-        assert result.stdout == string
+        assert result.stdout.decode() == string
 
     def test_stdout_and_stderr_is_mixed(self, image):
-        result = image.execute_command(["bash", "-c", "echo -n 1 ; echo -n 2 1>&2 ; echo -n 3"])
-        assert result == "123"
+        result = image.execute_command(["bash", "-c", "echo 1 ; echo 2 1>&2 ; echo 3"])
+        assert result.stdout.decode().splitlines() == ["1", "2", "3"]
 
     def test_return_code_is_zero(self, image):
         result = image.execute_command(["echo"])
         assert result.returncode == 0
         
     def test_return_code_is_nonzero(self, image):
-        result = image.execute_command(["exit", "123"])
+        result = image.execute_command(["bash", "-c", "exit 123"])
         assert result.returncode == 123
         
 
+class TestDeleteImage:
 
+    def test_del_calls_delete(self, image):
+        image.delete = Mock()
+        image.__del__()
+        image.delete.assert_called_once_with()
 
+    def test_container(self, image):
+        image.delete_container = Mock()
+        image.delete()
+        image.delete_container.assert_called_once_with()
 
+    def test_isos(self, image):
+        image.delete_iso_files = Mock()
+        image.delete()
+        image.delete_iso_files.assert_called_once_with()
+
+    def test_can_delete_image_twice(self, image):
+        image.delete()
+        image.delete()
 
 
 
