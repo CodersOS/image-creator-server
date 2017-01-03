@@ -93,7 +93,7 @@ class TestExecuteACommand:
 
     def test_stdout_and_stderr_is_mixed(self, image):
         result = image.execute_command(["bash", "-c", "echo 1 ; echo 2 1>&2 ; echo 3"])
-        assert result.stdout.decode().splitlines() == ["1", "2", "3"]
+        assert set(result.stdout.decode().splitlines()) == {"1", "2", "3"}
 
     def test_return_code_is_zero(self, image):
         result = image.execute_command(["echo"])
