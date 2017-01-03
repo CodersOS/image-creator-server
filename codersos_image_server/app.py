@@ -78,7 +78,7 @@ def get_status(build_id):
     status["output"] = build.get_status()
     return status
 
-@get("/download/<build_id>/<filename>")
+@get("/download/<build_id:int>/<filename>")
 def download(build_id, filename):
     if build_id not in builds:
         abort(404, '{"error": "Not found."}')
