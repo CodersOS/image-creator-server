@@ -12,6 +12,7 @@ class Commander:
         self._index = iter(range(len(commands)))
         self._commands = commands
         self._status_code = ("waiting" if commands else "stopped")
+        self._iso_file = None
 
     def get_status(self):
         """Returns the status based in the previous commands.
@@ -22,7 +23,7 @@ class Commander:
         """Return either "waiting" or "running" or "stopped"."""
         return self._status_code
 
-    def get_iso_path(self):
+    def _get_iso_file(self):
         """Returns the path to the iso image.
 
         If there is no iso image, None is returned.
@@ -35,7 +36,22 @@ class Commander:
             file = self._image.get_file(path)
         except FileNotFoundError:
             return None
-        return file.name
+        return file
+    
+    def get_iso_path(self):
+        """Returns the path to the iso image.
+
+        If there is no iso image, None is returned.
+        This can only be called is `get_status_code()` is `"stopped"`.
+        The iso file is deleted when the commander is deleted.
+        """
+        if self._iso_file is None:
+            self._iso_file = self._get_iso_file()
+            if self._iso_file is None:
+                return None
+        return self._iso_file.name
+            
+        
 
     def execute(self):
         """Execute all commands."""

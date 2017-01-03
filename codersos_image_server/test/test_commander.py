@@ -119,12 +119,16 @@ class TestISOPath:
             commander.get_iso_path()
 
     def test_iso_path_is_cached(self, stopped_commander):
-        stopped_commander._get_iso_path = get_path = Mock()
+        stopped_commander._get_iso_file = _get_iso_file = Mock()
         stopped_commander.get_iso_path()
         stopped_commander.get_iso_path()
-        get_path.assert_called_once_with()
+        _get_iso_file.assert_called_once_with()
 
     def test_iso_path_comes_from_cache(self, stopped_commander):
+        stopped_commander._get_iso_file = _get_iso_file = Mock()
         for i in range(4):
-            stopped_commander._get_iso_path = get_path = Mock()
-            assert stopped_commander.get_iso_path() == get_path.return_value.name
+            assert stopped_commander.get_iso_path() == _get_iso_file.return_value.name
+
+
+
+
