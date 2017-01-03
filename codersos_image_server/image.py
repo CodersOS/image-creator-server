@@ -173,5 +173,5 @@ class Image(object):
         self.delete_container()
 
     def __del__(self):
-        """Delete everything when the image is garbagecollected."""
+        """Delete everything when the image is garbage-collected."""
         self.delete()

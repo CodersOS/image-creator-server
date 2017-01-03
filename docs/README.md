@@ -69,7 +69,6 @@ API
     "commands" : [
       {
         "name" : "COMMAND-NAME",
-        "exitcode" : EXIT-CODE,
         "output" : "COMMAND-OUTPUT",
         "status" : "STATUS-CODE"
       },
@@ -88,9 +87,6 @@ API
     All of the commands in the **POST /create** MUST be present.
     There MAY be additional commands.
     - `COMMAND-NAME`, see above, the name of a command.
-    - `EXIT-CODE` is an integer of the process exit, if the process exited.
-      We can assume that the `0` means success.
-      Commands with status `stopped` must have the `exitcode` attribute.
     - `COMMAND-OUTPUT` - the stdout and stderr combined string of command
       output. This is useful for debugging.
       Commands with status `stopped` must have the `output` attribute.

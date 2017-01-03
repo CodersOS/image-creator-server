@@ -1,4 +1,4 @@
-
+from threading import Thread
 
 class Commander:
 
@@ -50,8 +50,6 @@ class Commander:
             if self._iso_file is None:
                 return None
         return self._iso_file.name
-            
-        
 
     def execute(self):
         """Execute all commands."""
@@ -76,6 +74,14 @@ class Commander:
             break
 
 
-
-
+class ParallelCommand(Command):
+    
+    def __init__(self, image, commands):
+        """Run the Command in a thread."""
+        super().__init__(image, commands)
+        self._thread = Thread(target=self.execute)
+    
+    def start(self):
+        """Start the parallel execution."""
+        self._thread.start()
 
