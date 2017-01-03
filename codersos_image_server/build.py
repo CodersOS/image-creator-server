@@ -1,9 +1,9 @@
 from threading import Thread
 
-class Commander:
+class Build:
 
     def __init__(self, image, commands):
-        """Create a new Commander object that executes the commands on the base image.
+        """Create a new Build object that executes the commands on the base image.
         """
         self._image = image
         self._status = []
@@ -37,13 +37,13 @@ class Commander:
         except FileNotFoundError:
             return None
         return file
-    
+
     def get_iso_path(self):
         """Returns the path to the iso image.
 
         If there is no iso image, None is returned.
         This can only be called is `get_status_code()` is `"stopped"`.
-        The iso file is deleted when the commander is deleted.
+        The iso file is deleted when the build is deleted.
         """
         if self._iso_file is None:
             self._iso_file = self._get_iso_file()
@@ -74,7 +74,7 @@ class Commander:
             break
 
 
-class ParallelCommand(Command):
+class ParallelBuild(Build):
     
     def __init__(self, image, commands):
         """Run the Command in a thread."""

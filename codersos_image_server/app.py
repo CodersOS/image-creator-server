@@ -2,7 +2,7 @@
 from bottle import post, get, run, request, static_file, redirect, abort
 import os
 import shutil
-from .commander import ParallelCommander
+from .build import ParallelBuild
 from .image import Image
 
 APPLICATION = 'CodersOS-image-server'
@@ -40,47 +40,47 @@ def verify_specification(specification):
         assert isinstance(command[ARGUMENTS], list), "The value of \"arguments\" of command {} must be a list.".format(index)
         assert all(map(lambda argument: isinstance(argument, str), command[ARGUMENTS])), "All arguments in comand {} must be strings.".format(index)
         
-commands = {}
-next_command_id = 0
+builds = {}
+next_build_id = 0
 
 @post("/create")
 def create_image():
-    global next_command_id
+    global next_build_id
     specification = request.json()
     verify_specification(specification)
-    command = ParallelCommand(BASE_IMAGE, specification)
-    command.start()
-    commands[next_command_id] = command
-    next_command_id += 1
+    build = ParallelBuild(BASE_IMAGE, specification)
+    build.start()
+    builds[next_build_id] = build
+    next_build_id += 1
     redirect_url = specification[REDIRECT]
     if not "?" in redirect_url:
         redirect_url += "?"
     elif redirect_url.find("?") != len(redirect_url) - 1:
         redirect_url += "&"
-    redirect_url += "status=/status/{}".format(next_command_id)
+    redirect_url += "status=/status/{}".format(next_build_id)
     redirect(redirect_url)
     
 
 # --------------------- Status ---------------------
 
-@get("/status/<command_id>")
-def get_status(command_id):
-    if command_id not in commands:
+@get("/status/<build_id>")
+def get_status(build_id):
+    if build_id not in builds:
         abort(404, '{"error": "Not found."}')
-    command = commands[command_id]
+    build = builds[build_id]
     status = {}
-    status[STATUS] = command_status = command.get_status_code()
-    if command_status == "stopped" and command.get_iso_path() is not None:
-        status["download"] = "/download/{}/CodersOS.iso".format(command_id)
-    status["output"] = command.get_status()
+    status[STATUS] = build_status = build.get_status_code()
+    if build_status == "stopped" and build.get_iso_path() is not None:
+        status["download"] = "/download/{}/CodersOS.iso".format(build_id)
+    status["output"] = build.get_status()
     return status
 
-@get("/download/<command_id>/<filename>")
-def download(command_id, filename):
-    if command_id not in commands:
+@get("/download/<build_id>/<filename>")
+def download(build_id, filename):
+    if build_id not in builds:
         abort(404, '{"error": "Not found."}')
-    command = commands[command_id]
-    iso_path = command.get_iso_path()
+    build = builds[build_id]
+    iso_path = build.get_iso_path()
     assert iso_path is not None
     return open(iso_path, "rb")
 
