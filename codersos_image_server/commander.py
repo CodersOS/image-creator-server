@@ -31,7 +31,9 @@ class Commander:
 
         If there is no iso image, None is returned.
         """
-        path = self._image.execute_command(["/toiso/iso_path.sh"]).output.decode() # TODO: checkresult
+        result = self._image.execute_command(["/toiso/iso_path.sh"])
+        result.check_returncode()
+        path = result.output.decode() # TODO: checkresult
         try:
             file = self._image.get_file(path)
         except FileNotFoundError:
