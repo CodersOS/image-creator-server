@@ -69,38 +69,41 @@ class TestDeleteImage:
 
 class TestExecuteACommand:
 
+    def exec(self, image, command):
+        return image.execute_command(command)
+
     def test_creates_new_image(self, image):
         image_before = image.docker_image
-        image.execute_command(["touch x"])
+        self.exec(image, ["touch x"])
         image_after = image.docker_image
         assert image_before != image_after
 
     def test_can_not_delete_old_image(self, image):
         image_before = image.docker_image
-        image.execute_command("touch x")
+        self.exec(image, ["touch x"])
         assert image_before in images()
 
     def test_no_container_is_left(self, image):
         container_before = containers()
-        image.execute_command("touch x")
+        self.exec(image, "touch x")
         containers_after = containers()
         assert container_before == containers_after
 
     def test_output(self, image):
         string = "jahslfhawuehifdsjhawuhefhkdsjkfhawu"
-        result = image.execute_command(["echo", "-n", string])
+        result = self.exec(image, ["echo", "-n", string])
         assert result.stdout.decode() == string
 
     def test_stdout_and_stderr_is_mixed(self, image):
-        result = image.execute_command(["bash", "-c", "echo 1 ; echo 2 1>&2 ; echo 3"])
+        result = self.exec(image, ["bash", "-c", "echo 1 ; echo 2 1>&2 ; echo 3"])
         assert set(result.stdout.decode().splitlines()) == {"1", "2", "3"}
 
     def test_return_code_is_zero(self, image):
-        result = image.execute_command(["echo"])
+        result = self.exec(image, ["echo"])
         assert result.returncode == 0
         
     def test_return_code_is_nonzero(self, image):
-        result = image.execute_command(["bash", "-c", "exit 123"])
+        result = self.exec(image, ["bash", "-c", "exit 123"])
         assert result.returncode == 123
         
 
@@ -126,8 +129,10 @@ class TestDeleteImage:
         image.delete()
 
 
+class TestExecuteFile(TestExecuteACommand):
 
-
-
+    def exec(self, image, command):
+        file_content = "#!/bin/bash\n'" + "' '".join(command) + "'\n"
+        return image.execute_file(file_content)
 
 

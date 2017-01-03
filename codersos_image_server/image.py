@@ -2,7 +2,8 @@ import os
 
 from shutil import rmtree
 from subprocess import run, STDOUT, PIPE, CalledProcessError
-from tempfile import mkdtemp
+from tempfile import mkdtemp, NamedTemporaryFile
+from contextlib import contextmanager
 
 
 def docker(*args, **kw):
@@ -32,6 +33,14 @@ class Image(object):
         return self._image
 
     def create_container(self):
+        """This creates the container based on the docker_image.
+
+        This container is used to issue commands.
+        """
+        with self._create_container():
+            pass
+
+    def __create_container(self):
         """This creates the container based on the base_docker_image.
 
         This container is used to issue commands.
@@ -42,8 +51,24 @@ class Image(object):
             container_id = docker_id(docker("create", self._image))
         except CalledProcessError:
             raise ValueError("Image {} not found.".format(self._image))
+        yield container_id
+        self.__use_container_image(container_id)
+
+    def __use_container_image(self, container_id):
         self._image = docker_id(docker("commit", container_id))
         docker("rm", container_id)
+
+    def _create_container(self):
+        """This creates the container based on the docker_image.
+
+        This container is used to issue commands.
+        Use is like this:
+
+            with self._create_container() as container_id:
+                 # do something with the container
+            # the container is destroyed and the current image is in the container.
+        """
+        return contextmanager(self.__create_container)()
 
     def delete_container(self):
         """Delete the container and the corresponding container image.
@@ -58,7 +83,7 @@ class Image(object):
         """Whether the Image has a docker image."""
         return self._image is not None
 
-    def execute_command(self, command):
+    def execute_command(self, command, input=None):
         """Execute a command in the container.
 
         The command is executed on the command line.
@@ -75,11 +100,11 @@ class Image(object):
         temporary_directory = mkdtemp()
         try:
             container_id_file_name = os.path.join(temporary_directory, "id")
-            result = docker("run", "--cidfile", container_id_file_name, self._image, *command, stderr=STDOUT, check=False)
+            result = docker("run", "--cidfile", container_id_file_name, self._image, *command,
+                            stderr=STDOUT, check=False, input=input)
             with open(container_id_file_name) as container_id_file:
                 container_id = container_id_file.read()
-            self._image = docker_id(docker("commit", container_id))
-            docker("rm", container_id)
+            self.__use_container_image(container_id)
             return result
         finally:
             rmtree(temporary_directory)
@@ -100,6 +125,17 @@ class Image(object):
 
         You can only execute one command at a time!
         """
+        if isinstance(content, bytes):
+            file = NamedTemporaryFile("wb")
+        else:
+            file = NamedTemporaryFile("w")
+        with file:
+            file.write(content)
+            file.flush()
+            with self._create_container() as container_id:
+                docker("cp", file.name, container_id + ":/tmp/command")
+        self.execute_command(["chmod", "+x", "/tmp/command"]).check_returncode()
+        return self.execute_command(["/tmp/command"] + list(arguments))
 
     def create_iso_file(self):
         """Create the live image in an iso format.
