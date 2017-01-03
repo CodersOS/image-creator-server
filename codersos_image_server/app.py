@@ -19,7 +19,7 @@ COMMAND = "command"
 def is_url(url):
     return url.startswith("http://") or url.startswith("https://")
 
-def verify(specification):
+def verify_specification(specification):
     assert isinstance(specification, dict), "The image specification must be an object"
     assert REDIRECT in specification, "\"redirect\" must be an attribute of the specification."
     assert is_url(specification[REDIRECT]), "The value of \"redirect\" must be a url."
@@ -33,6 +33,12 @@ def verify(specification):
         assert COMMAND in command, "Command {} must have an attribute \"command\"."
         assert isinstance(command[COMMAND], str), "The value of \"command\" of command {} must be a string.".format(index)
         
+@post("/create")
+def create_image():
+    specification = request.json()
+    verify_specification(specification)
+    
+
 
 
 # --------------------- AGPL Source ---------------------
