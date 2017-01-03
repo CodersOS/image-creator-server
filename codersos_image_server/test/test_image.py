@@ -12,7 +12,9 @@ def images():
 
 @fixture
 def image():
-    return Image("ubuntu")
+    image = Image("ubuntu")
+    yield image
+    image.delete()
 
 class TestCreateImage:
 
