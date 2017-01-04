@@ -105,3 +105,24 @@ API
   ```
 - **GET /source**  
   The result is a zip file with the current source code.
+
+Image API
+---------
+
+The server can transform any docker image into an iso file as long as certain things are made certain:
+
+1. The docker image creates the iso file itself. Possibly with the last command. That this is done is not the responsibility of the server but if the request.
+2. To get the iso file, the server looks for and executes this code:
+   ```
+   /toiso/iso_path.sh
+   ```
+   Which outputs a path to the iso file without line break at the end, for example `/toiso/CodersOS.iso`.
+   Here is an example file:
+   ```
+   #!/bin/bash
+   echo -n "/toiso/CodersOS.iso"
+   ```
+   See the [here][toiso] for an example implementation.
+   
+   
+ [toiso]: https://github.com/CodersOS/linux-iso-creator/blob/d7e66ba0922de31de37a012c81de8a1b5486de86/toiso/iso_path.sh
