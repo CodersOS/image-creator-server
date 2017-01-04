@@ -111,7 +111,7 @@ Image API
 
 The server can transform any docker image into an iso file as long as certain things are made certain:
 
-1. The docker image creates the iso file itself. Possibly with the last command. That this is done is not the responsibility of the server but if the request.
+1. The docker image creates the iso file itself. Possibly with the last command. That this is done is not the responsibility of the server but of the request.
 2. To get the iso file, the server looks for and executes this code:
    ```
    /toiso/iso_path.sh
