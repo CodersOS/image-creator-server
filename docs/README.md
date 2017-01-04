@@ -113,15 +113,19 @@ The server can transform any docker image into an iso file as long as certain th
 
 1. The docker image creates the iso file itself. Possibly with the last command. That this is done is not the responsibility of the server but of the request.
 2. To get the iso file, the server looks for and executes this code:
+
    ```
    /toiso/iso_path.sh
    ```
+
    Which outputs a path to the iso file without line break at the end, for example `/toiso/CodersOS.iso`.
    Here is an example file:
+   
    ```
    #!/bin/bash
    echo -n "/toiso/CodersOS.iso"
    ```
+   
    See the [here][toiso] for an example implementation.
    
    
