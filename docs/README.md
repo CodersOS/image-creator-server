@@ -60,7 +60,12 @@ API
         ```
     - `ARGUMENT` is part of a list of arguments to the `COMMAND` file.
     - `arguments` must be given.
-
+  
+  Example request:
+  ```
+  curl -H "Content-Type: application/json" -X POST -d '{"redirect":"http://localhost/","commands":[{"name":"build iso","command":"#!/bin/bash\n/toiso/command.sh -q\n","arguments":[]}]}' http://localhost:80/create
+  ```
+  
 - **GET /status/ID**  
   The result of this GET request is a JSON like this:
   ```
@@ -93,6 +98,10 @@ API
   - `DOWNLOAD-URL` is the URL where the result can be downloaded once the
     process exited with `STATUS-CODE` `stopped`.
     If `exitcode` is 0, then the url MUST be present.
-
+  
+  Example request:
+  ```
+  wget -qO- http://localhost/status/0 ; echo
+  ```
 - **GET /source**  
   The result is a zip file with the current source code.
