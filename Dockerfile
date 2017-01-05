@@ -14,4 +14,4 @@ ADD LICENSE /root/codersos_image_server/LICENSE
 ADD codersos_image_server /root/codersos_image_server
 
 WORKDIR /root
-COMMAND ["python3", "-m", "codersos_image_server.app"]
+CMD ["python3", "-m", "codersos_image_server.app"]
