@@ -101,6 +101,7 @@ API
       Commands with status `stopped` must have the `output` attribute.
     - `EXIT-CODE` is the return code of the command.
       It can be assumed that `0` means success and everything else is failure.
+      Commands with status `stopped` must have the `exitcode` attribute.
   - `DOWNLOAD-URL` is the URL where the result can be downloaded once the
     process exited with `STATUS-CODE` `stopped`.
   
