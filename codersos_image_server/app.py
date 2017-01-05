@@ -105,7 +105,7 @@ def get_status(build_id):
     status[STATUS] = build_status = build.get_status_code()
     if build_status == "stopped" and build.get_iso_path() is not None:
         status["download"] = "/download/{}/CodersOS.iso".format(build_id)
-    status["output"] = build.get_status()
+    status["commands"] = build.get_status()
     return status
 
 @get("/download/<build_id:int>/<filename>")
