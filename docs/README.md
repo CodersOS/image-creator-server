@@ -18,19 +18,21 @@ API
   Post a json in the following format
   - as request body to `/create`
   - as the specification argument `/create?specification=...`
+  
+  ```
+  {
+    "redirect" : "REDIECT-URL",
+    "commands" : [
+      {
+        "name" : "COMMAND-NAME",
+        "command" : "COMMAND",
+        "arguments" : ["ARGUMENT", ...]
+      },
+      ...
+    ]
+  }
+  ```
 
-        {
-          "redirect" : "REDIECT-URL",
-          "commands" : [
-            {
-              "name" : "COMMAND-NAME",
-              "command" : "COMMAND",
-              "arguments" : ["ARGUMENT", ...]
-            },
-            ...
-          ]
-        }
-    
   These have the following meaning:
   
   - `redirect` must be given. `REDIRECT-URL` is the url where the user
