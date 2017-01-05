@@ -5,6 +5,7 @@ import shutil
 from .build import ParallelBuild
 from .image import Image
 from pprint import pprint
+import json
 
 APPLICATION = 'CodersOS-image-server'
 APPDATA_ROOT = os.environ.get('APPDATA', '/var/' + APPLICATION)
@@ -55,16 +56,15 @@ def verify_specification(specification):
 builds = {}
 next_build_id = 0
 
-@post("/create")
-def create_image():
-    global next_build_id
-    specification = request.json
+def get_specification():
+    if "specification" in request.params:
+        specification = json.loads(request.params["specification"])
+    else:
+        specification = request.json
     pprint(specification)
-    verify_specification(specification)
-    build = ParallelBuild(Image(BASE_IMAGE), specification[COMMANDS])
-    build.start()
-    builds[next_build_id] = build
-    next_build_id += 1
+    return specification
+
+def redirect_as_specified(specification):
     redirect_url = specification[REDIRECT]
     if not "?" in redirect_url:
         redirect_url += "?"
@@ -72,7 +72,26 @@ def create_image():
         redirect_url += "&"
     redirect_url += "status=/status/{}".format(next_build_id)
     redirect(redirect_url)
+
+def start_build(specification):
+    build = ParallelBuild(Image(BASE_IMAGE), specification[COMMANDS])
+    build.start()
+    builds[next_build_id] = build
+    next_build_id += 1
+
+@post("/create")
+def create_image():
+    global next_build_id
+    specification = get_specification()
+    verify_specification(specification)
+    start_build(specification)
+    redirect_as_specified(specification)
     
+@post("/test/create")
+def test_create_image():
+    specification = get_specification()
+    verify_specification(specification)
+    redirect_as_specified(specification)
 
 # --------------------- Build Status ---------------------
 
@@ -108,6 +127,12 @@ def server_status():
     return {"status" : "ready", "priority" : 0}
 
 
+@get("/test/status")
+def server_status():
+    enable_cors()
+    return {"status" : "ready", "priority" : 0}
+
+
 # --------------------- AGPL Source ---------------------
 
 @get('/source')
@@ -123,4 +148,4 @@ def get_source():
     return static_file(path, root="/")
 
 if __name__ == "__main__":
-    run(host='', port=80, debug=True, reload=True)
+    run(host='', port=80, debug=True)
