@@ -15,7 +15,9 @@ API
 ---
 
 - **POST /create**  
-  Post a json in the following format:
+  Post a json in the following format
+  - as request body to `/create`
+  - as the specification argument `/create?specification=...`
 
         {
           "redirect" : "REDIECT-URL",
