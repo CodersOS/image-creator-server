@@ -83,6 +83,7 @@ API
       },
       ...
     ],
+    "exitcode" : EXIT-CODE,
     "download" : "DOWNLOAD-URL"
   }
   ```
@@ -100,6 +101,7 @@ API
       Commands with status `stopped` must have the `output` attribute.
   - `DOWNLOAD-URL` is the URL where the result can be downloaded once the
     process exited with `STATUS-CODE` `stopped`.
+    If `exitcode` is 0, then the url MUST be present.
   
   Example request:
   ```
