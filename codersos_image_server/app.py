@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from bottle import post, get, run, request, static_file, redirect, abort
+from bottle import post, get, run, request, static_file, redirect, abort, response
 import os
 import shutil
 from .build import ParallelBuild
@@ -12,6 +12,16 @@ APPDATA = os.path.join(APPDATA_ROOT, APPLICATION)
 HERE = os.path.dirname(__file__) or os.getcwd()
 ZIP_PATH = "/" + APPLICATION + ".zip"
 BASE_IMAGE = "codersos/linux-iso-creator"
+
+
+# --------------------- enable ayax access ---------------------
+
+def enable_cors():
+    # set CORS headers
+    # from http://stackoverflow.com/a/17262900/1320237
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
 # --------------------- POST /create ---------------------
 
@@ -64,10 +74,11 @@ def create_image():
     redirect(redirect_url)
     
 
-# --------------------- Status ---------------------
+# --------------------- Build Status ---------------------
 
 @get("/status/<build_id:int>")
 def get_status(build_id):
+    enable_cors()
     if build_id not in builds:
         abort(404, '{"error": "Not found."}')
     build = builds[build_id]
@@ -80,12 +91,21 @@ def get_status(build_id):
 
 @get("/download/<build_id:int>/<filename>")
 def download(build_id, filename):
+    enable_cors()
     if build_id not in builds:
         abort(404, '{"error": "Not found."}')
     build = builds[build_id]
     iso_path = build.get_iso_path()
     assert iso_path is not None
     return open(iso_path, "rb")
+
+
+# --------------------- Status ---------------------
+
+@get("/status")
+def server_status():
+    enable_cors()
+    return {"status" : "ready", "priority" : 0}
 
 
 # --------------------- AGPL Source ---------------------
