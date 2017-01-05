@@ -103,6 +103,21 @@ API
   ```
   wget -qO- http://localhost/status/0 ; echo
   ```
+- **GET /status**  
+  The status of the server. To see whether it is there, whether it is building or something else.
+  ```
+  {
+    "status" : "STATUS-INIDICATION",
+    "priority" : PRIORITY
+  }
+  ```
+  Where the following meaning is assigned:
+  - `STATUS-INDICATION` is one of these:
+    - `ready` to indicate that the server can create images
+    - `busy` to indicate that the server does not want to create images
+  - `PRIORITY` is an integer with a build priority which is used to choose this server among others.
+    A higher priority means that the server shall be favored.
+  
 - **GET /source**  
   The result is a zip file with the current source code.
 
