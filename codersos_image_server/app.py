@@ -3,6 +3,7 @@ from bottle import post, get, run, request, static_file, redirect, abort, respon
 import os
 import shutil
 from .build import ParallelBuild
+from .fakebuild import ParallelFakeBuild
 from .image import Image
 from pprint import pprint
 import json
@@ -73,29 +74,31 @@ def redirect_as_specified(specification):
     redirect_url += "status=/status/{}".format(next_build_id)
     redirect(redirect_url)
 
-def start_build(specification):
-    build = ParallelBuild(Image(BASE_IMAGE), specification[COMMANDS])
+def start_build(specification, build_class):
+    global next_build_id
+    next_build_id += 1
+    build = build_class(Image(BASE_IMAGE), specification[COMMANDS])
     build.start()
     builds[next_build_id] = build
-    next_build_id += 1
 
 @post("/create")
 def create_image():
-    global next_build_id
     specification = get_specification()
     verify_specification(specification)
-    start_build(specification)
+    start_build(specification, ParallelBuild)
     redirect_as_specified(specification)
     
 @post("/test/create")
 def test_create_image():
     specification = get_specification()
     verify_specification(specification)
+    start_build(specification, ParallelFakeBuild)
     redirect_as_specified(specification)
 
 # --------------------- Build Status ---------------------
 
 @get("/status/<build_id:int>")
+@get("/test/status/<build_id:int>")
 def get_status(build_id):
     enable_cors()
     if build_id not in builds:
@@ -122,16 +125,10 @@ def download(build_id, filename):
 # --------------------- Status ---------------------
 
 @get("/status")
-def server_status():
-    enable_cors()
-    return {"status" : "ready", "priority" : 0}
-
-
 @get("/test/status")
 def server_status():
     enable_cors()
     return {"status" : "ready", "priority" : 0}
-
 
 # --------------------- AGPL Source ---------------------
 

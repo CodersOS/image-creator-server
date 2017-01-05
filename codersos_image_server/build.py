@@ -28,7 +28,6 @@ class Build:
 
         If there is no iso image, None is returned.
         """
-        assert self.get_status_code() == "stopped"
         result = self._image.execute_command(["/toiso/iso_path.sh"])
         result.check_returncode()
         path = result.stdout.decode()
@@ -45,6 +44,7 @@ class Build:
         This can only be called is `get_status_code()` is `"stopped"`.
         The iso file is deleted when the build is deleted.
         """
+        assert self.get_status_code() == "stopped"
         if self._iso_file is None:
             self._iso_file = self._get_iso_file()
             if self._iso_file is None:
@@ -63,15 +63,20 @@ class Build:
             self._status_code = "running"
             try:
                 status = self._status[index]
-                status["status"] = "running"
                 command = self._commands[index]
-                result = self._image.execute_file(command["command"], command["arguments"])
-                status["status"] = "stopped"
-                status["exitcode"] = result.returncode
-                status["output"] = result.stdout.decode()
+                self._execute_command(status, command)
             finally:
                 self._status_code = ("stopped" if index == len(self._commands) - 1 else "waiting")
             break
+
+    def _execute_command(self, status, command):
+        """Execute the command and update the status."""
+        status["status"] = "running"
+        result = self._image.execute_file(command["command"], command["arguments"]) # TODO: catch error
+        status["status"] = "stopped"
+        status["exitcode"] = result.returncode
+        status["output"] = result.stdout.decode()
+
 
 
 class ParallelBuild(Build):
