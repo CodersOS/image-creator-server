@@ -127,6 +127,12 @@ API
 - **GET /source**  
   The result is a zip file with the current source code.
 
+- **GET /test/create**  
+  The same as **GET /create** but no commands will be issued.
+
+- **GET /test/status**  
+  The same as **GET /status**.
+
 Image API
 ---------
 
