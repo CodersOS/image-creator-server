@@ -13,8 +13,7 @@ APPDATA_ROOT = os.environ.get('APPDATA', '/var/' + APPLICATION)
 APPDATA = os.path.join(APPDATA_ROOT, APPLICATION)
 HERE = os.path.dirname(__file__) or os.getcwd()
 ZIP_PATH = "/" + APPLICATION + ".zip"
-BASE_IMAGE = "codersos/linux-iso-creator"
-
+BASE_IMAGE = "codersosimages/ubuntu-mini-remix-16.04-amd64"
 
 # --------------------- enable ayax access ---------------------
 
@@ -33,6 +32,7 @@ NAME = "name"
 COMMAND = "command"
 ARGUMENTS = "arguments"
 STATUS = "status"
+IMAGE = "image"
 
 def is_url(url):
     return url.startswith("http://") or url.startswith("https://")
@@ -53,7 +53,9 @@ def verify_specification(specification):
         assert ARGUMENTS in command, "Command {} must have an attribute \"arguments\"."
         assert isinstance(command[ARGUMENTS], list), "The value of \"arguments\" of command {} must be a list.".format(index)
         assert all(map(lambda argument: isinstance(argument, str), command[ARGUMENTS])), "All arguments in comand {} must be strings.".format(index)
-        
+    if IMAGE in specification:
+        assert isinstance(specification[IMAGE], str), "The \"image\" attribute must be a string."
+
 builds = {}
 next_build_id = 0
 
@@ -74,10 +76,15 @@ def redirect_as_specified(specification):
     redirect_url += "status=/status/{}".format(next_build_id)
     redirect(redirect_url)
 
+def get_image(specification):
+    base_image = specification.get(IMAGE, BASE_IMAGE)
+    return Image(base_image)
+
 def start_build(specification, build_class):
     global next_build_id
     next_build_id += 1
-    build = build_class(Image(BASE_IMAGE), specification[COMMANDS])
+    image = get_image(specification)
+    build = build_class(image, specification[COMMANDS])
     build.start()
     builds[next_build_id] = build
 

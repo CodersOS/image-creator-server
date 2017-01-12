@@ -9,7 +9,7 @@ You can configure the following locally:
 
 - the base image to use:
   
-        "base_image" : "codersos/linux-image-creator"
+        BASE_IMAGE = "codersos/linux-image-creator"
 
 API
 ---
@@ -22,6 +22,7 @@ API
   ```
   {
     "redirect" : "REDIECT-URL",
+    "image" : "IMAGE-NAME",
     "commands" : [
       {
         "name" : "COMMAND-NAME",
@@ -45,6 +46,9 @@ API
     This is done leaving as much intact as possible.
     `STATUSURL` is replaced with the url of the build status,
     see **GET /status/ID**.
+  - `image` can be given. If it is given, the given docker image will be used.
+    The server may restrict which images accepts to use.
+    `IMAGE-NAME` is the name of the docker image.
   - `commands` is a list of commands that should be executed on the
     linux image.
     For each command in the list, the `name` attribute MUST be given.
