@@ -13,7 +13,7 @@ APPDATA_ROOT = os.environ.get('APPDATA', '/var/' + APPLICATION)
 APPDATA = os.path.join(APPDATA_ROOT, APPLICATION)
 HERE = os.path.dirname(__file__) or os.getcwd()
 ZIP_PATH = "/" + APPLICATION + ".zip"
-BASE_IMAGE = "codersosimages/ubuntu-mini-remix-16.04-amd64"
+BASE_IMAGE = "codersosimages/xubuntu-16.04.1-desktop-amd64"
 
 # --------------------- enable ayax access ---------------------
 
@@ -126,7 +126,7 @@ def download(build_id, filename):
     build = builds[build_id]
     iso_path = build.get_iso_path()
     assert iso_path is not None
-    return open(iso_path, "rb")
+    return static_file(iso_path, "/", download=filename)
 
 
 # --------------------- Status ---------------------
