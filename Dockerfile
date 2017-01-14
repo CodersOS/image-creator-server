@@ -1,5 +1,6 @@
 FROM ubuntu
 
+ENV PYTHONUNBUFFERED 1
 ADD requirements.txt /root/requirements.txt
 
 RUN apt-get update && \
